@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Recommended Route Planner</title>
+  <script>
+    function initMap() {
+      const directionsRenderer = new google.maps.DirectionsRenderer();
+      const directionsService = new google.maps.DirectionsService();
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 7,
+        center: { lat: 23.6978, lng: 120.9605 },
+      });
+      directionsRenderer.setMap(map);
+
+      document.getElementById("generate-route").addEventListener("click", () => {
+        generateRecommendedRoute(directionsService, directionsRenderer);
+      });
+    }
+
+    function generateRecommendedRoute(directionsService, directionsRenderer) {
+      const start = document.getElementById("start").value;
+      const end = document.getElementById("end").value;
+      const category = document.getElementById("category").value;
+      const subcategory = document.getElementById("subcategory").value;
+      const stopCount = parseInt(document.getElementById("stop-count").value);
+      const stopTime = document.getElementById("stop-time").value;
+
+      const recommendations = {
+        food: {
+          Chinese: ["Changhua", "Miaoli", "Hsinchu"],
+          Japanese: ["Taichung", "Chiayi", "Tainan"],
+          Western: ["Kaohsiung", "Yilan", "Penghu"],
+        },
+        leisure: {
+          Parks: ["Nantou", "Taichung", "Hualien"],
+          Shopping: ["Taipei", "New Taipei", "Taoyuan"],
+        },
+        sightseeing: {
+          Historical: ["Tainan", "Kaohsiung", "Chiayi"],
+          Scenic: ["Hualien", "Taitung", "Penghu"],
+        },
+      };
+
+      const waypoints = (recommendations[category]?.[subcategory] || [])
+        .slice(0, stopCount)
+        .map(city => ({ location: city, stopover: true }));
+
+      directionsService
+        .route({
+          origin: start,
+          destination: end,
+          waypoints: waypoints,
+          travelMode: google.maps.TravelMode.DRIVING,
+        })
+        .then((response) => {
+          directionsRenderer.setDirections(response);
+          alert(`Route includes ${stopCount} stops with ${stopTime} mins per stop.`);
+        })
+        .catch((e) =>
+          alert("Could not display directions due to: " + e)
+        );
+    }
+
+    window.initMap = initMap;
+  </script>
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+    #map {
+      height: 75%;
+      width: 100%;
+    }
+    #controls {
+      padding: 10px;
+      background: #fff;
+      box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    select, input, button {
+      margin: 5px;
+      padding: 5px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label for="start">Start:</label>
+    <select id="start">
+      <option value="Taipei">Taipei</option>
+      <option value="New Taipei">New Taipei</option>
+      <option value="Taoyuan">Taoyuan</option>
+      <option value="Hsinchu">Hsinchu</option>
+      <option value="Miaoli">Miaoli</option>
+      <option value="Taichung">Taichung</option>
+      <option value="Changhua">Changhua</option>
+      <option value="Nantou">Nantou</option>
+      <option value="Yunlin">Yunlin</option>
+      <option value="Chiayi">Chiayi</option>
+      <option value="Tainan">Tainan</option>
+      <option value="Kaohsiung">Kaohsiung</option>
+      <option value="Pingtung">Pingtung</option>
+      <option value="Yilan">Yilan</option>
+      <option value="Hualien">Hualien</option>
+      <option value="Taitung">Taitung</option>
+      <option value="Penghu">Penghu</option>
+      <option value="Kinmen">Kinmen</option>
+      <option value="Matsu">Matsu</option>
+    </select>
+
+    <label for="end">End:</label>
+    <select id="end">
+      <option value="Taipei">Taipei</option>
+      <option value="New Taipei">New Taipei</option>
+      <option value="Taoyuan">Taoyuan</option>
+      <option value="Hsinchu">Hsinchu</option>
+      <option value="Miaoli">Miaoli</option>
+      <option value="Taichung">Taichung</option>
+      <option value="Changhua">Changhua</option>
+      <option value="Nantou">Nantou</option>
+      <option value="Yunlin">Yunlin</option>
+      <option value="Chiayi">Chiayi</option>
+      <option value="Tainan">Tainan</option>
+      <option value="Kaohsiung">Kaohsiung</option>
+      <option value="Pingtung">Pingtung</option>
+      <option value="Yilan">Yilan</option>
+      <option value="Hualien">Hualien</option>
+      <option value="Taitung">Taitung</option>
+      <option value="Penghu">Penghu</option>
+      <option value="Kinmen">Kinmen</option>
+      <option value="Matsu">Matsu</option>
+    </select>
+
+    <label for="category">Category:</label>
+    <select id="category" onchange="updateSubcategories()">
+      <option value="food">Food</option>
+      <option value="leisure">Leisure</option>
+      <option value="sightseeing">Sightseeing</option>
+    </select>
+
+    <label for="subcategory">Subcategory:</label>
+    <select id="subcategory">
+      <!-- Subcategories dynamically updated -->
+    </select>
+
+    <label for="stop-count">Stop Count:</label>
+    <select id="stop-count">
+      <option value="1">1</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+    </select>
+
+    <label for="stop-time">Stop Time (mins):</label>
+    <input type="number" id="stop-time" min="10" max="120" value="30" />
+
+    <button id="generate-route">Generate Route</button>
+  </div>
+  <div id="map"></div>
+  <script>
+    function updateSubcategories() {
+      const category = document.getElementById("category").value;
+      const subcategory = document.getElementById("subcategory");
+      subcategory.innerHTML = ""; // Clear existing options
+
+      const options = {
+        food: ["Chinese", "Japanese", "Western"],
+        leisure: ["Parks", "Shopping"],
+        sightseeing: ["Historical", "Scenic"],
+      };
+
+      (options[category] || []).forEach(sub => {
+        const option = document.createElement("option");
+        option.value = sub;
+        option.textContent = sub;
+        subcategory.appendChild(option);
+      });
+    }
+
+    // Initialize subcategories on page load
+    document.addEventListener("DOMContentLoaded", updateSubcategories);
+  </script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuLOY9-b3PFzHvGYobzgSfOj8hZyvxoTg&callback=initMap"></script>
+</body>
+</html>
