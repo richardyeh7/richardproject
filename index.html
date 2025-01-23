@@ -1,186 +1,337 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Recommended Route Planner</title>
-  <script>
-    function initMap() {
-      const directionsRenderer = new google.maps.DirectionsRenderer();
-      const directionsService = new google.maps.DirectionsService();
-      const map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 7,
-        center: { lat: 23.6978, lng: 120.9605 },
-      });
-      directionsRenderer.setMap(map);
-
-      document.getElementById("generate-route").addEventListener("click", () => {
-        generateRecommendedRoute(directionsService, directionsRenderer);
-      });
-    }
-
-    function generateRecommendedRoute(directionsService, directionsRenderer) {
-      const start = document.getElementById("start").value;
-      const end = document.getElementById("end").value;
-      const category = document.getElementById("category").value;
-      const subcategory = document.getElementById("subcategory").value;
-      const stopCount = parseInt(document.getElementById("stop-count").value);
-      const stopTime = document.getElementById("stop-time").value;
-
-      const recommendations = {
-        food: {
-          Chinese: ["Changhua", "Miaoli", "Hsinchu"],
-          Japanese: ["Taichung", "Chiayi", "Tainan"],
-          Western: ["Kaohsiung", "Yilan", "Penghu"],
-        },
-        leisure: {
-          Parks: ["Nantou", "Taichung", "Hualien"],
-          Shopping: ["Taipei", "New Taipei", "Taoyuan"],
-        },
-        sightseeing: {
-          Historical: ["Tainan", "Kaohsiung", "Chiayi"],
-          Scenic: ["Hualien", "Taitung", "Penghu"],
-        },
-      };
-
-      const waypoints = (recommendations[category]?.[subcategory] || [])
-        .slice(0, stopCount)
-        .map(city => ({ location: city, stopover: true }));
-
-      directionsService
-        .route({
-          origin: start,
-          destination: end,
-          waypoints: waypoints,
-          travelMode: google.maps.TravelMode.DRIVING,
-        })
-        .then((response) => {
-          directionsRenderer.setDirections(response);
-          alert(`Route includes ${stopCount} stops with ${stopTime} mins per stop.`);
-        })
-        .catch((e) =>
-          alert("Could not display directions due to: " + e)
-        );
-    }
-
-    window.initMap = initMap;
-  </script>
-  <style>
-    body, html {
-      height: 100%;
-      margin: 0;
-      font-family: Arial, sans-serif;
-    }
-    #map {
-      height: 75%;
-      width: 100%;
-    }
-    #controls {
-      padding: 10px;
-      background: #fff;
-      box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
-    }
-    select, input, button {
-      margin: 5px;
-      padding: 5px;
-      font-size: 14px;
-    }
-  </style>
+    <title>Traffic-Based Restaurant Recommendation</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            height: 70%;
+            width: 100%;
+        }
+        #controls {
+            padding: 10px;
+            background: #fff;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        select, input, button {
+            margin: 5px;
+            padding: 5px;
+            font-size: 14px;
+        }
+        #recommendation {
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        .restaurant {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .restaurant img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+        .restaurant-info {
+            display: flex;
+            align-items: center;
+        }
+    </style>
 </head>
 <body>
-  <div id="controls">
-    <label for="start">Start:</label>
-    <select id="start">
-      <option value="Taipei">Taipei</option>
-      <option value="New Taipei">New Taipei</option>
-      <option value="Taoyuan">Taoyuan</option>
-      <option value="Hsinchu">Hsinchu</option>
-      <option value="Miaoli">Miaoli</option>
-      <option value="Taichung">Taichung</option>
-      <option value="Changhua">Changhua</option>
-      <option value="Nantou">Nantou</option>
-      <option value="Yunlin">Yunlin</option>
-      <option value="Chiayi">Chiayi</option>
-      <option value="Tainan">Tainan</option>
-      <option value="Kaohsiung">Kaohsiung</option>
-      <option value="Pingtung">Pingtung</option>
-      <option value="Yilan">Yilan</option>
-      <option value="Hualien">Hualien</option>
-      <option value="Taitung">Taitung</option>
-      <option value="Penghu">Penghu</option>
-      <option value="Kinmen">Kinmen</option>
-      <option value="Matsu">Matsu</option>
-    </select>
+    <div id="controls">
+        <label for="start">Start:</label>
+        <input type="text" id="start" placeholder="Enter start location" />
 
-    <label for="end">End:</label>
-    <select id="end">
-      <option value="Taipei">Taipei</option>
-      <option value="New Taipei">New Taipei</option>
-      <option value="Taoyuan">Taoyuan</option>
-      <option value="Hsinchu">Hsinchu</option>
-      <option value="Miaoli">Miaoli</option>
-      <option value="Taichung">Taichung</option>
-      <option value="Changhua">Changhua</option>
-      <option value="Nantou">Nantou</option>
-      <option value="Yunlin">Yunlin</option>
-      <option value="Chiayi">Chiayi</option>
-      <option value="Tainan">Tainan</option>
-      <option value="Kaohsiung">Kaohsiung</option>
-      <option value="Pingtung">Pingtung</option>
-      <option value="Yilan">Yilan</option>
-      <option value="Hualien">Hualien</option>
-      <option value="Taitung">Taitung</option>
-      <option value="Penghu">Penghu</option>
-      <option value="Kinmen">Kinmen</option>
-      <option value="Matsu">Matsu</option>
-    </select>
+        <label for="end">End:</label>
+        <input type="text" id="end" placeholder="Enter end location" />
 
-    <label for="category">Category:</label>
-    <select id="category" onchange="updateSubcategories()">
-      <option value="food">Food</option>
-      <option value="leisure">Leisure</option>
-      <option value="sightseeing">Sightseeing</option>
-    </select>
+        <label for="departure-time">Departure Time:</label>
+        <input type="datetime-local" id="departure-time" />
 
-    <label for="subcategory">Subcategory:</label>
-    <select id="subcategory">
-      <!-- Subcategories dynamically updated -->
-    </select>
+        <label for="earliest-time">Earliest Arrival:</label>
+        <input type="datetime-local" id="earliest-time" />
 
-    <label for="stop-count">Stop Count:</label>
-    <select id="stop-count">
-      <option value="1">1</option>
-      <option value="2">2</option>
-      <option value="3">3</option>
-    </select>
+        <label for="latest-time">Latest Arrival:</label>
+        <input type="datetime-local" id="latest-time" />
 
-    <label for="stop-time">Stop Time (mins):</label>
-    <input type="number" id="stop-time" min="10" max="120" value="30" />
+        <label for="stay-time">Stay Duration (minutes):</label>
+        <input type="number" id="stay-time" min="0" />
 
-    <button id="generate-route">Generate Route</button>
-  </div>
-  <div id="map"></div>
-  <script>
-    function updateSubcategories() {
-      const category = document.getElementById("category").value;
-      const subcategory = document.getElementById("subcategory");
-      subcategory.innerHTML = ""; // Clear existing options
+        <button id="generate-route">Generate Route</button>
+    </div>
+    <div id="map"></div>
+    <div id="recommendation"></div>
 
-      const options = {
-        food: ["Chinese", "Japanese", "Western"],
-        leisure: ["Parks", "Shopping"],
-        sightseeing: ["Historical", "Scenic"],
-      };
+    <script>
+        let map;
+        let directionsService;
+        let directionsRenderer;
+        let markers = [];
 
-      (options[category] || []).forEach(sub => {
-        const option = document.createElement("option");
-        option.value = sub;
-        option.textContent = sub;
-        subcategory.appendChild(option);
-      });
-    }
+        function initMap() {
+            directionsService = new google.maps.DirectionsService();
+            directionsRenderer = new google.maps.DirectionsRenderer();
 
-    // Initialize subcategories on page load
-    document.addEventListener("DOMContentLoaded", updateSubcategories);
-  </script>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuLOY9-b3PFzHvGYobzgSfOj8hZyvxoTg&callback=initMap"></script>
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 7,
+                center: { lat: 23.6978, lng: 120.9605 }, // Taiwan center
+            });
+
+            directionsRenderer.setMap(map);
+
+            document.getElementById("generate-route").addEventListener("click", () => {
+                generateRouteWithRecommendations();
+            });
+        }
+
+        function clearMarkers() {
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+        }
+
+        function generateRouteWithRecommendations() {
+            clearMarkers();
+
+            const start = document.getElementById("start").value;
+            const end = document.getElementById("end").value;
+            const departureTime = new Date(document.getElementById("departure-time").value);
+            const earliestTime = new Date(document.getElementById("earliest-time").value);
+            const latestTime = new Date(document.getElementById("latest-time").value);
+            const stayDuration = parseInt(document.getElementById("stay-time").value) * 60; // Convert minutes to seconds
+
+            if (!start || !end || !departureTime || !earliestTime || !latestTime || !stayDuration) {
+                alert("Please fill in all fields.");
+                return;
+            }
+
+            directionsService.route({
+                origin: start,
+                destination: end,
+                travelMode: google.maps.TravelMode.DRIVING,
+                drivingOptions: { departureTime: departureTime },
+            }).then((response) => {
+                directionsRenderer.setDirections(response);
+
+                const fullPath = response.routes[0].overview_path;
+                const segments = dividePathIntoSegments(fullPath, 5000); // Divide into 5km segments
+                analyzeSegmentsAndRecommend(segments, earliestTime, latestTime, stayDuration, departureTime, end);
+            }).catch((e) => alert("Could not display directions due to: " + e));
+        }
+
+        function dividePathIntoSegments(path, segmentDistance) {
+            let segments = [];
+            let currentSegment = [path[0]];
+            let distance = 0;
+
+            for (let i = 1; i < path.length; i++) {
+                distance += google.maps.geometry.spherical.computeDistanceBetween(path[i - 1], path[i]);
+
+                if (distance >= segmentDistance) {
+                    segments.push(currentSegment);
+                    currentSegment = [path[i]];
+                    distance = 0;
+                } else {
+                    currentSegment.push(path[i]);
+                }
+            }
+
+            if (currentSegment.length > 1) {
+                segments.push(currentSegment);
+            }
+            return segments;
+        }
+
+        function analyzeSegmentsAndRecommend(segments, earliestTime, latestTime, stayDuration, departureTime, finalDestination) {
+            const eligibleSegments = [];
+            let cumulativeTime = 0;
+
+            const promises = segments.map((segment, index) => {
+                const segmentStart = segment[0];
+                const segmentEnd = segment[segment.length - 1];
+
+                return directionsService.route({
+                    origin: segmentStart,
+                    destination: segmentEnd,
+                    travelMode: google.maps.TravelMode.DRIVING,
+                }).then((response) => {
+                    const travelTime = response.routes[0].legs[0].duration.value; 
+                    cumulativeTime += travelTime;
+
+                    const segmentStartArrival = new Date(departureTime.getTime() + cumulativeTime * 1000);
+
+                    if (
+                        segmentStartArrival >= earliestTime &&
+                        segmentStartArrival <= latestTime
+                    ) {
+                        eligibleSegments.push(segmentStart);
+                    }
+                });
+            });
+
+            Promise.all(promises).then(() => {
+                recommendRestaurantsForSegments(eligibleSegments, stayDuration, departureTime, finalDestination);
+            });
+        }
+
+        function recommendRestaurantsForSegments(segments, stayDuration, departureTime, finalDestination) {
+            const restaurantPromises = segments.map((location) =>
+                recommendRestaurants(location, stayDuration, departureTime, finalDestination)
+            );
+
+            Promise.all(restaurantPromises).then((allRestaurants) => {
+                const sortedRestaurants = allRestaurants.flat()
+                    .filter((r) => r !== null)
+                    .sort((a, b) => a.timeDifference - b.timeDifference)
+                    .slice(0, 10);
+
+                displayRecommendations(sortedRestaurants);
+            });
+        }
+
+    function recommendRestaurants(location, stayDuration, departureTime, finalDestination) {
+    return new Promise((resolve) => {
+        const service = new google.maps.places.PlacesService(map);
+
+        service.nearbySearch(
+            {
+                location: location,
+                radius: 5000,
+                type: "restaurant",
+            },
+            (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    const filteredRestaurants = results
+                        .filter((r) => r.rating >= 4.0) 
+                        .reduce((unique, r) => {
+                            if (!unique.some((item) => item.place_id === r.place_id)) {
+                                unique.push(r); 
+                            }
+                            return unique;
+                        }, []);
+
+                    
+                    const start = document.getElementById("start").value;
+                    const end = document.getElementById("end").value;
+                    const earliestTime = new Date(document.getElementById("earliest-time").value);
+                    const latestTime = new Date(document.getElementById("latest-time").value);
+
+                    const restaurantPromises = filteredRestaurants.map((r) => {
+                        return new Promise((resolve) => {
+                            directionsService.route({
+                                origin: start,
+                                destination: r.geometry.location,
+                                travelMode: google.maps.TravelMode.DRIVING,
+                                drivingOptions: { departureTime },
+                            }).then((responseToRestaurant) => {
+                                const timeToRestaurant = responseToRestaurant.routes[0].legs[0].duration.value;
+                                const arrivalTimeAtRestaurant = new Date(departureTime.getTime() + timeToRestaurant * 1000);
+                               
+                                if (
+                                    arrivalTimeAtRestaurant < earliestTime ||
+                                    arrivalTimeAtRestaurant > latestTime
+                                ) {
+                                    resolve(null); 
+                                    return;
+                                }
+                                
+                                const newDepartureTime = new Date(arrivalTimeAtRestaurant.getTime() + stayDuration * 1000);
+
+                                directionsService.route({
+                                    origin: r.geometry.location,
+                                    destination: end,
+                                    travelMode: google.maps.TravelMode.DRIVING,
+                                    drivingOptions: { departureTime: newDepartureTime },
+                                }).then((responseToFinal) => {
+                                    const timeToFinalFromRestaurant = responseToFinal.routes[0].legs[0].duration.value;
+
+                                    
+                                    directionsService.route({
+                                        origin: start,
+                                        destination: end,
+                                        travelMode: google.maps.TravelMode.DRIVING,
+                                        drivingOptions: { departureTime },
+                                    }).then((responseDirect) => {
+                                        const directTime = responseDirect.routes[0].legs[0].duration.value;
+
+                                        
+                                        const totalTimeWithStop = timeToRestaurant + timeToFinalFromRestaurant + stayDuration;
+                                        const timeDifference = (directTime - totalTimeWithStop) / 60;
+
+                                        resolve({
+                                            name: r.name,
+                                            rating: r.rating || "N/A",
+                                            address: r.vicinity || "Unknown address",
+                                            photo: r.photos ? r.photos[0].getUrl({ maxWidth: 100, maxHeight: 100 }) : null,
+                                            location: r.geometry.location,
+                                            timeDifference,
+                                            timeToRestaurant,
+                                            timeToFinalFromRestaurant,
+                                            directTime,
+                                            arrivalTimeAtRestaurant,
+                                        });
+                                    }).catch(() => resolve(null));
+                                }).catch(() => resolve(null));
+                            }).catch(() => resolve(null));
+                        });
+                    });
+
+                    Promise.all(restaurantPromises).then((results) => {
+                        const uniqueResults = results
+                            .filter((r) => r !== null) 
+                            .reduce((unique, r) => {
+                                if (!unique.some((item) => item.place_id === r.place_id)) {
+                                    unique.push(r); 
+                                }
+                                return unique;
+                            }, []);
+
+                        resolve(uniqueResults);
+                    });
+                } else {
+                    resolve([]);
+                }
+            }
+        );
+    });
+}
+function displayRecommendations(recommendations) {
+    const recommendationDiv = document.getElementById("recommendation");
+    recommendationDiv.innerHTML = recommendations
+        .map((r) =>
+            `<div class="restaurant">
+                <div class="restaurant-info">
+                    ${r.photo ? `<img src="${r.photo}" alt="${r.name}" />` : ""}
+                    <div>
+                        <h3>${r.name}</h3>
+                        <p>Rating: ${r.rating}</p>
+                        <p>Address: ${r.address}</p>
+                        <p>Time Difference: ${r.timeDifference.toFixed(2)} minutes</p>
+                        <p>Arrival Time: ${r.arrivalTimeAtRestaurant.toLocaleTimeString()}</p>
+                        <p>Time to Restaurant: ${(r.timeToRestaurant / 60).toFixed(2)} minutes</p>
+                        <p>Time to Final from Restaurant: ${(r.timeToFinalFromRestaurant / 60).toFixed(2)} minutes</p>
+                        <p>Direct Time to Final: ${(r.directTime / 60).toFixed(2)} minutes</p>
+                    </div>
+                </div>
+            </div>`
+        )
+        .join("");
+
+    recommendations.forEach((r) => {
+        const marker = new google.maps.Marker({
+            position: r.location,
+            map: map,
+            title: r.name,
+        });
+        markers.push(marker);
+    });
+}
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuLOY9-b3PFzHvGYobzgSfOj8hZyvxoTg&libraries=places,geometry&callback=initMap"></script>
 </body>
 </html>
